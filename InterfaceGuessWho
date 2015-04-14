@@ -1,0 +1,21 @@
+para establecer partida es como un mensaje privado en el chat
+// crear partida con dos tableros y los actualiza constantemente, eso incluye pj aleatorio
+//manejar turno en la partida
+//las partidas estarán en servidor
+
+Interface:
+	iniciar sesion: almacenarlos en una lista
+	cerrar sesión
+	String ver conectados();
+
+	boolean retar(retador, contrincante) true o false para ver si se puede retar o no 
+	int responderReto(contrincante, respuesta) // devuelve un numero puede ser la partida
+	bolean preguntar característica(int partida, String nombre,  característica)//nombre del que pregunta
+	boolean preguntar personaje (int partida,String nombre, nombre)
+
+
+states thread:	
+	quien está online: actualizar lista
+	quien me está retando: ve retos (mi nombre)->ver quien me reta	
+	turno
+	estado del tablero
