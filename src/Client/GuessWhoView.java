@@ -6,7 +6,13 @@
 package Client;
 
 import Interfaces.GuessWhoInterface;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -20,8 +26,8 @@ import javax.swing.JOptionPane;
 public class GuessWhoView extends javax.swing.JFrame {
 
     GuessWhoInterface GWInterface;
-    GuessWhoClientStatesThread stateThread;
-    GuessWhoClientStatesThread thread;
+//    GuessWhoClientStatesThread stateThread;
+//    GuessWhoClientStatesThread thread;
     String answer;
 //    ArrayList<JButton> buttons;
     String player;// when you log in your name is here
@@ -36,28 +42,46 @@ public class GuessWhoView extends javax.swing.JFrame {
     /**
      * Creates new form GuessWhoView
      */
-    public GuessWhoView() {
+    public GuessWhoView(String host) throws NotBoundException, MalformedURLException, RemoteException  {
         player = "rick";
         testPlayer = "test";
         initComponents();
-        JOptionPane.showMessageDialog(null, "El login", "Chat", JOptionPane.ERROR_MESSAGE);
-        try{        
-            GWInterface = new GuessWhoClientTCP("localhost", 2015);
+        //JOptionPane.showMessageDialog(null, "El login", "Chat", JOptionPane.ERROR_MESSAGE);
+//        try{        
+//            GWInterface = new GuessWhoClientTCP("localhost", 2015);
+//            GWInterface = new GuessWhoClientTCP("localhost", 2015);
+//            GWInterface.LogIn(player);
+//            GWInterface.LogIn(testPlayer);
+//            GWInterface.Challenge(testPlayer, player);//create the challenge
+//            GWInterface.AskCharacteristic(0, testPlayer, "hairColor Amarillo");
+//            btnAcceptChallenge.setEnabled(false);                           
+//            thread = new GuessWhoClientStatesThread(this, GWInterface, player, game);
+//            thread.start();
+//                game = GWInterface.AnswerChallenges(player, testPlayer, "Aceptar");
+//        }catch(Exception e){
+//            JOptionPane.showMessageDialog(null, "Error al conectar", "Chat", JOptionPane.ERROR_MESSAGE);
+//        }
+
+        if(host==null){
+            GWInterface=(GuessWhoInterface) Naming.lookup("rmi://localhost/nmagic");
             GWInterface.LogIn(player);
             GWInterface.LogIn(testPlayer);
             GWInterface.Challenge(testPlayer, player);//create the challenge
-//            GWInterface.AskCharacteristic(0, testPlayer, "hairColor Amarillo");
             btnAcceptChallenge.setEnabled(false);                           
-            thread = new GuessWhoClientStatesThread(this, GWInterface, player, game);
-            thread.start();
-//                game = GWInterface.AnswerChallenges(player, testPlayer, "Aceptar");
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(null, "Error al conectar", "Chat", JOptionPane.ERROR_MESSAGE);
+
+        }else try {
+            GWInterface=(GuessWhoInterface) Naming.lookup("rmi://"+host+"/nmagic");
+            GWInterface.LogIn(player);
+            GWInterface.LogIn(testPlayer);
+            GWInterface.Challenge(testPlayer, player);//create the challenge
+            btnAcceptChallenge.setEnabled(false);                           
+
+        } catch (Exception e) {
+            System.out.println(e.toString());
         }
-//        buttons = new ArrayList();
     }
     
-    public void whoIsOnLine(String onlines){
+    public void whoIsOnLine(String onlines) throws RemoteException{
         otherPlayers = GWInterface.SeeOnlinePlayers().split(",");
         LabelsOnLinePlayers = new JLabel[otherPlayers.length];
         ComboOnLines.addItem(otherPlayers[0]);
@@ -76,7 +100,7 @@ public class GuessWhoView extends javax.swing.JFrame {
         }
     }
     
-    public void ChallengesToMe(String challenges){
+    public void ChallengesToMe(String challenges) throws RemoteException{
         otherChallenges = GWInterface.AskByChallenges(player).split(",");
         LabelsChallenges = new JLabel[otherChallenges.length];
         ComboChallenges.addItem(otherChallenges[0]);
@@ -98,7 +122,7 @@ public class GuessWhoView extends javax.swing.JFrame {
         challengesPanel.setVisible(true);
     }
     
-    public void seeTurn(String trurn){
+    public void seeTurn(String trurn) throws RemoteException{
         LabelTurn.setText(GWInterface.SeeTurn(game));
     }
     
@@ -726,15 +750,19 @@ public class GuessWhoView extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void HairColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_HairColorActionPerformed
-        if(GWInterface.AskCharacteristic(game, player,"hairColor "+ HairColor.getItemAt(HairColor.getSelectedIndex()))){
-            labelAnswer.setText("Si tiene cabello color: "+HairColor.getItemAt(HairColor.getSelectedIndex()) );
-//            for (int i = 0; i< characterss.size(); i++) {                
+        try {
+            if(GWInterface.AskCharacteristic(game, player,"hairColor "+ HairColor.getItemAt(HairColor.getSelectedIndex()))){
+                labelAnswer.setText("Si tiene cabello color: "+HairColor.getItemAt(HairColor.getSelectedIndex()) );
+//            for (int i = 0; i< characterss.size(); i++) {
 //                if (!characterss.get(i).getSelfcharacteristic().get(1).equals(HairColor.getItemAt(HairColor.getSelectedIndex()))) {//si el character tiene la misma característica
 //                    labels.get(i).setEnabled(false);
 //                }
 //            }
-        }else{
-           labelAnswer.setText("NO tiene cabello color: "+HairColor.getItemAt(HairColor.getSelectedIndex()) );
+            }else{
+                labelAnswer.setText("NO tiene cabello color: "+HairColor.getItemAt(HairColor.getSelectedIndex()) );
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_HairColorActionPerformed
 
@@ -752,7 +780,8 @@ public class GuessWhoView extends javax.swing.JFrame {
                 btnAcceptChallenge.setEnabled(false);
                 btnRejectChallenge.setEnabled(false);
                 btnChallenge.setEnabled(false);
-                game = thread.GWInterface.AnswerChallenges(player, defiant, "Aceptar");
+                GWInterface.AnswerChallenges(player, defiant, "Aceptar");
+//                game = thread.GWInterface.AnswerChallenges(player, defiant, "Aceptar");
 
                 System.out.println("character of player: "+GWInterface.SeeCharacter(game, player));
                 System.out.println("character of test: "+GWInterface.SeeCharacter(game, testPlayer));
@@ -837,58 +866,86 @@ public class GuessWhoView extends javax.swing.JFrame {
     }//GEN-LAST:event_btnTomActionPerformed
 
     private void EyesColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EyesColorActionPerformed
-        if(GWInterface.AskCharacteristic(game, player,"eyesColor "+ EyesColor.getItemAt(EyesColor.getSelectedIndex()))){
-            labelAnswer.setText("SI tiene ojos color: "+EyesColor.getItemAt(EyesColor.getSelectedIndex()) );
-        }else{
-           labelAnswer.setText("NO tiene ojos color: "+EyesColor.getItemAt(EyesColor.getSelectedIndex()) );
+        try {
+            if(GWInterface.AskCharacteristic(game, player,"eyesColor "+ EyesColor.getItemAt(EyesColor.getSelectedIndex()))){
+                labelAnswer.setText("SI tiene ojos color: "+EyesColor.getItemAt(EyesColor.getSelectedIndex()) );
+            }else{
+                labelAnswer.setText("NO tiene ojos color: "+EyesColor.getItemAt(EyesColor.getSelectedIndex()) );
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_EyesColorActionPerformed
 
     private void SkinColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SkinColorActionPerformed
-        if(GWInterface.AskCharacteristic(game, player,"skinColor "+ SkinColor.getItemAt(SkinColor.getSelectedIndex()))){
-            labelAnswer.setText("SI tiene piel color: "+SkinColor.getItemAt(SkinColor.getSelectedIndex()) );
-        }else{
-           labelAnswer.setText("NO tiene piel color: "+SkinColor.getItemAt(SkinColor.getSelectedIndex()) );
+        try {
+            if(GWInterface.AskCharacteristic(game, player,"skinColor "+ SkinColor.getItemAt(SkinColor.getSelectedIndex()))){
+                labelAnswer.setText("SI tiene piel color: "+SkinColor.getItemAt(SkinColor.getSelectedIndex()) );
+            }else{
+                labelAnswer.setText("NO tiene piel color: "+SkinColor.getItemAt(SkinColor.getSelectedIndex()) );
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_SkinColorActionPerformed
 
     private void MoustacheActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MoustacheActionPerformed
-       if(GWInterface.AskCharacteristic(game, player,"moustache "+ Moustache.getItemAt(Moustache.getSelectedIndex()))){
-            labelAnswer.setText("SI tiene bigote");
-        }else{
-           labelAnswer.setText("NO tiene bigote");
+        try {
+            if(GWInterface.AskCharacteristic(game, player,"moustache "+ Moustache.getItemAt(Moustache.getSelectedIndex()))){
+                labelAnswer.setText("SI tiene bigote");
+            }else{
+                labelAnswer.setText("NO tiene bigote");
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_MoustacheActionPerformed
 
     private void BarbActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BarbActionPerformed
-        if(GWInterface.AskCharacteristic(game, player,"barb "+ Barb.getItemAt(Barb.getSelectedIndex()))){
-            labelAnswer.setText("SI tiene barba");
-        }else{
-           labelAnswer.setText("NO tiene barba");
+        try {
+            if(GWInterface.AskCharacteristic(game, player,"barb "+ Barb.getItemAt(Barb.getSelectedIndex()))){
+                labelAnswer.setText("SI tiene barba");
+            }else{
+                labelAnswer.setText("NO tiene barba");
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_BarbActionPerformed
 
     private void GlasesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GlasesActionPerformed
-        if(GWInterface.AskCharacteristic(game, player,"glases "+ Glases.getItemAt(Glases.getSelectedIndex()))){
-            labelAnswer.setText("SI tiene gafas");
-        }else{
-           labelAnswer.setText("NO tiene gafas");
+        try {
+            if(GWInterface.AskCharacteristic(game, player,"glases "+ Glases.getItemAt(Glases.getSelectedIndex()))){
+                labelAnswer.setText("SI tiene gafas");
+            }else{
+                labelAnswer.setText("NO tiene gafas");
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_GlasesActionPerformed
 
     private void SexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SexActionPerformed
-         if(GWInterface.AskCharacteristic(game, player,"sexo "+ Sex.getItemAt(Sex.getSelectedIndex()))){
-            labelAnswer.setText("SI es: "+ Sex.getItemAt(Sex.getSelectedIndex()));
-        }else{
-           labelAnswer.setText("NO es: "+ Sex.getItemAt(Sex.getSelectedIndex()));
+        try {
+            if(GWInterface.AskCharacteristic(game, player,"sexo "+ Sex.getItemAt(Sex.getSelectedIndex()))){
+                labelAnswer.setText("SI es: "+ Sex.getItemAt(Sex.getSelectedIndex()));
+            }else{
+                labelAnswer.setText("NO es: "+ Sex.getItemAt(Sex.getSelectedIndex()));
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_SexActionPerformed
 
     private void askCharacterChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_askCharacterChooserActionPerformed
         String characterChoosed = ""+ askCharacterChooser.getItemAt(askCharacterChooser.getSelectedIndex());
         System.out.println("verificando el pj escogido: "+characterChoosed);
-        if (GWInterface.AskCharacter(game, player, characterChoosed)) {
-            labelAnswer.setText("ganadorasdf");
+        try {
+            if (GWInterface.AskCharacter(game, player, characterChoosed)) {
+                labelAnswer.setText("ganadorasdf");
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_askCharacterChooserActionPerformed
 
@@ -928,7 +985,15 @@ public class GuessWhoView extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new GuessWhoView().setVisible(true);
+                try {
+                    new GuessWhoView("localhost").setVisible(true);
+                } catch (NotBoundException ex) {
+                    Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (MalformedURLException ex) {
+                    Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (RemoteException ex) {
+                    Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }

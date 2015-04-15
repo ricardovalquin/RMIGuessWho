@@ -6,6 +6,9 @@
 package Client;
 
 import Interfaces.GuessWhoInterface;
+import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -48,9 +51,21 @@ public class GuessWhoClientStatesThread extends Thread implements Runnable {
             }catch(Exception ex){
                 System.out.println("Error al sincronizar los datos");
             }
-            if (!online.equals("")) GWView.whoIsOnLine(online);
-            if (!challenges.equals("")) GWView.ChallengesToMe(challenges);
-            if (!turn.equals("")) GWView.seeTurn(turn);
+            if (!online.equals("")) try {
+                GWView.whoIsOnLine(online);
+            } catch (RemoteException ex) {
+                Logger.getLogger(GuessWhoClientStatesThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            if (!challenges.equals("")) try {
+                GWView.ChallengesToMe(challenges);
+            } catch (RemoteException ex) {
+                Logger.getLogger(GuessWhoClientStatesThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            if (!turn.equals("")) try {
+                GWView.seeTurn(turn);
+            } catch (RemoteException ex) {
+                Logger.getLogger(GuessWhoClientStatesThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
             
             try {
                 sleep(500);

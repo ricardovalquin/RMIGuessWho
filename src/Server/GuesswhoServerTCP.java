@@ -51,11 +51,11 @@ public class GuesswhoServerTCP {
     //GuesswhoServerTCP server = new GuesswhoServerTCP(2015);
     //server.daemon();
     //GuessWhoServerImplementation serverImplementation = new GuessWhoServerImplementation();
-    //UnicastRemoteObject.exportObject(serverImplementation, 8888);
+    //UnicastRemoteObject.exportObject(serverImplementation, 8888); 1099
         try {
-            LocateRegistry.createRegistry(1099);//rmiregistry
+            LocateRegistry.createRegistry(8888);//rmiregistry
             GuessWhoServerImplementation serverImplementation = new GuessWhoServerImplementation();
-            Naming.rebind("GuessWhoServer", serverImplementation);
+            Naming.rebind("GuessWhoServers", serverImplementation);
             System.out.println("Servidor del Guess Who Listo!");
 
     }
