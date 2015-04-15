@@ -5,11 +5,13 @@
  */
 package Interfaces;
 
+import java.rmi.Remote;
+
 /**
  *
  * @author rick
  */
-public interface GuessWhoInterface {
+public interface GuessWhoInterface extends Remote {
     public boolean LogIn(String playerName);//
     
     public boolean LOgOut(String playerName);//
