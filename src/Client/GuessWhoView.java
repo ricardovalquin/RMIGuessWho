@@ -46,31 +46,16 @@ public class GuessWhoView extends javax.swing.JFrame {
         player = "rick";
         testPlayer = "test";
         initComponents();
-        //JOptionPane.showMessageDialog(null, "El login", "Chat", JOptionPane.ERROR_MESSAGE);
-//        try{        
-//            GWInterface = new GuessWhoClientTCP("localhost", 2015);
-//            GWInterface = new GuessWhoClientTCP("localhost", 2015);
-//            GWInterface.LogIn(player);
-//            GWInterface.LogIn(testPlayer);
-//            GWInterface.Challenge(testPlayer, player);//create the challenge
-//            GWInterface.AskCharacteristic(0, testPlayer, "hairColor Amarillo");
-//            btnAcceptChallenge.setEnabled(false);                           
-//            thread = new GuessWhoClientStatesThread(this, GWInterface, player, game);
-//            thread.start();
-//                game = GWInterface.AnswerChallenges(player, testPlayer, "Aceptar");
-//        }catch(Exception e){
-//            JOptionPane.showMessageDialog(null, "Error al conectar", "Chat", JOptionPane.ERROR_MESSAGE);
-//        }
-
+       
         if(host==null){
-            GWInterface=(GuessWhoInterface) Naming.lookup("rmi://localhost/nmagic");
+            GWInterface=(GuessWhoInterface) Naming.lookup("rmi://localhost:8888/GuessWhoServers");
             GWInterface.LogIn(player);
             GWInterface.LogIn(testPlayer);
             GWInterface.Challenge(testPlayer, player);//create the challenge
             btnAcceptChallenge.setEnabled(false);                           
 
         }else try {
-            GWInterface=(GuessWhoInterface) Naming.lookup("rmi://"+host+"/nmagic");
+            GWInterface=(GuessWhoInterface) Naming.lookup("rmi://"+host+"/GuessWhoServers");
             GWInterface.LogIn(player);
             GWInterface.LogIn(testPlayer);
             GWInterface.Challenge(testPlayer, player);//create the challenge
@@ -104,6 +89,7 @@ public class GuessWhoView extends javax.swing.JFrame {
         otherChallenges = GWInterface.AskByChallenges(player).split(",");
         LabelsChallenges = new JLabel[otherChallenges.length];
         ComboChallenges.addItem(otherChallenges[0]);
+        labelRetos.setText(otherChallenges[1]);
         //ComboChallenges.addItem(otherChallenges[1]);
 
         
@@ -196,6 +182,11 @@ public class GuessWhoView extends javax.swing.JFrame {
 
         labelRetos.setText("jLabel15");
 
+        ComboChallenges.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                ComboChallengesMouseClicked(evt);
+            }
+        });
         ComboChallenges.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ComboChallengesActionPerformed(evt);
@@ -753,6 +744,7 @@ public class GuessWhoView extends javax.swing.JFrame {
         try {
             if(GWInterface.AskCharacteristic(game, player,"hairColor "+ HairColor.getItemAt(HairColor.getSelectedIndex()))){
                 labelAnswer.setText("Si tiene cabello color: "+HairColor.getItemAt(HairColor.getSelectedIndex()) );
+                LabelTurn.setText(GWInterface.SeeTurn(game));
 //            for (int i = 0; i< characterss.size(); i++) {
 //                if (!characterss.get(i).getSelfcharacteristic().get(1).equals(HairColor.getItemAt(HairColor.getSelectedIndex()))) {//si el character tiene la misma característica
 //                    labels.get(i).setEnabled(false);
@@ -760,6 +752,7 @@ public class GuessWhoView extends javax.swing.JFrame {
 //            }
             }else{
                 labelAnswer.setText("NO tiene cabello color: "+HairColor.getItemAt(HairColor.getSelectedIndex()) );
+                LabelTurn.setText(GWInterface.SeeTurn(game));
             }
         } catch (RemoteException ex) {
             Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
@@ -780,12 +773,11 @@ public class GuessWhoView extends javax.swing.JFrame {
                 btnAcceptChallenge.setEnabled(false);
                 btnRejectChallenge.setEnabled(false);
                 btnChallenge.setEnabled(false);
-                GWInterface.AnswerChallenges(player, defiant, "Aceptar");
-//                game = thread.GWInterface.AnswerChallenges(player, defiant, "Aceptar");
+              game =  GWInterface.AnswerChallenges(player, defiant, "Aceptar");
 
                 System.out.println("character of player: "+GWInterface.SeeCharacter(game, player));
                 System.out.println("character of test: "+GWInterface.SeeCharacter(game, testPlayer));
-                
+                LabelTurn.setText(GWInterface.SeeTurn(game));
             }catch(Exception e){
                 JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -952,7 +944,34 @@ public class GuessWhoView extends javax.swing.JFrame {
     private void ComboChallengesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ComboChallengesActionPerformed
         defiant = ComboChallenges.getSelectedItem().toString();
         btnAcceptChallenge.setEnabled(true);
+       
     }//GEN-LAST:event_ComboChallengesActionPerformed
+
+    private void ComboChallengesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ComboChallengesMouseClicked
+        // TODO add your handling code here:
+         try {
+            otherChallenges = GWInterface.AskByChallenges(player).split(","); 
+            //labelRetos.setText(GWInterface.AskByChallenges(player));
+            LabelsChallenges = new JLabel[otherChallenges.length];
+            ComboChallenges.addItem(otherChallenges[0]);
+               
+        for (int i = 0; i < otherChallenges.length; i++) {
+            if (otherChallenges[i] != null && otherChallenges[i] != ",") {
+                for (int j = 0; j < ComboChallenges.getItemCount(); j++) {
+                    if (ComboChallenges.getItemAt(j) != otherChallenges[i]) {
+                        ComboChallenges.addItem(otherChallenges[i]);
+                    }
+
+                }
+                //if((ComboChallenges.getItemAt(i)!=null)&& (!ComboChallenges.getItemAt(i).toString().equals(otherChallenges[i]))){
+                //ComboChallenges.addItem(otherChallenges[i]);
+                //}
+            }
+        }
+        } catch (RemoteException ex) {
+            Logger.getLogger(GuessWhoView.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_ComboChallengesMouseClicked
 
     /**
      * @param args the command line arguments

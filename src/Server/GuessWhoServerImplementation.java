@@ -8,6 +8,8 @@ package Server;
 import Interfaces.Games;
 import Interfaces.GuessWhoInterface;
 import static java.lang.Math.random;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -15,12 +17,13 @@ import java.util.Random;
  *
  * @author rick
  */
-public class GuessWhoServerImplementation implements GuessWhoInterface {
+public class GuessWhoServerImplementation extends UnicastRemoteObject implements GuessWhoInterface {
      ArrayList <Users> users;
      ArrayList<Games> games;
 
      
-     public GuessWhoServerImplementation(){
+     public GuessWhoServerImplementation() throws RemoteException{
+         super();
          users = new ArrayList();
          games = new ArrayList();
      }
@@ -118,7 +121,7 @@ public class GuessWhoServerImplementation implements GuessWhoInterface {
     
     @Override
     public String AskByChallenges(String retado) {
-        String retadores=null;
+        String retadores="";
         
         for (int i = 0; i < games.size(); i++) {
             if (games.get(i).getEstado().equals("reto")) {
@@ -365,7 +368,7 @@ public class GuessWhoServerImplementation implements GuessWhoInterface {
             System.out.println("Crear retos:");
             System.out.println(guess.Challenge("Johan", "Yamile"));
             System.out.println(guess.Challenge("Adrian", "Yamile"));
-            System.out.println(guess.Challenge("Yamile", "Susan" ));
+            //System.out.println(guess.Challenge("Yamile", "Susan" ));
 ////////////////////////////////////////////////////    
             System.out.println("pregunta por retos:");
             System.out.println(""+guess.AskByChallenges("Yamile"));

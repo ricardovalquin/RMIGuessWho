@@ -15,8 +15,8 @@ public class Games {
     
     private ArrayList<Characters> characters;
      
-    private String jugador1 = null;
-    private String jugador2 = null;
+    private String jugador1 = "j";
+    private String jugador2 = "p";
 
     private String personaje1 = null;
     private String personaje2 = null;
